@@ -1,0 +1,50 @@
+# Simple Dockerfile that avoids package-lock sync issues
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Use npm install instead of npm ci to handle lock file issues
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage with minimal Node.js server
+FROM node:18-alpine AS production
+
+# Install dumb-init and wget
+RUN apk add --no-cache dumb-init wget
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Install serve globally to avoid package.json dependencies
+RUN npm install -g serve
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+# Start the application with serve
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
