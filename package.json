@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
-    "start": "npm run preview"
+    "start": "serve -s dist -l 3000",
+    "start:vite": "npm run preview"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -23,7 +24,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.1.0",
-    "recharts": "^2.8.0"
+    "recharts": "^2.8.0",
+    "serve": "^14.2.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
